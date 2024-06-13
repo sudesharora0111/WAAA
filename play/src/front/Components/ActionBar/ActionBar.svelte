@@ -105,6 +105,8 @@
 
     import AvailabilityStatusComponent from "./AvailabilityStatus/AvailabilityStatus.svelte";
 
+    import Applications from "./Applications.svelte";
+
     const menuImg = gameManager.currentStartedRoom?.miniLogo ?? WorkAdventureImg;
 
     let cameraActive = false;
@@ -838,6 +840,7 @@
                 {/if}
             </div>
 
+
             <div class="bottom-action-section tw-flex tw-flex-initial">
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div
@@ -853,10 +856,19 @@
                     </button>
                 </div>
             </div>
+
+
+            <!-- Other app integration -->
+
             <div class="bottom-action-section tw-flex tw-flex-initial">
                 <AvailabilityStatusComponent />
             </div>
+
             <div class="bottom-action-section tw-flex tw-flex-initial">
+                <!-- Other app integration -->
+
+                <Applications />
+                
                 <!-- svelte-ignore a11y-click-events-have-key-events -->
                 <div on:dragstart|preventDefault={noDrag} on:click={toggleMapEditorMode} class="bottom-action-button">
                     {#if isMobile}
@@ -896,6 +908,7 @@
                         </button>
                     </div>
                 {/if}
+                
             </div>
 
             {#if $roomListActivated}
