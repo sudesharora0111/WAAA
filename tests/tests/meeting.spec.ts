@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import { v4 as uuid } from "uuid";
 import {login} from './utils/roles';
 import Map from "./utils/map";
 import {publicTestMapUrl} from "./utils/urls";
@@ -25,8 +26,9 @@ test.describe('Meeting actions test', () => {
     );
 
     test('Meeting action to mute microphone & video', async ({page, browser}, {project}) => {
+        const mapID = uuid();
         // Go to the empty map
-        await page.goto(publicTestMapUrl("tests/E2E/empty.json", "meeting"));
+        await page.goto(publicTestMapUrl("tests/E2E/empty.json", mapID));
         // Login user "Alice"
         await login(page, 'Alice', 2, 'en-US', project.name === "mobilechromium");
 
@@ -36,7 +38,7 @@ test.describe('Meeting actions test', () => {
         const newBrowser = await browser.browserType().launch();
         const userBob = await newBrowser.newPage();
         // Go to the empty map
-        await userBob.goto(publicTestMapUrl("tests/E2E/empty.json", "meeting"));
+        await userBob.goto(publicTestMapUrl("tests/E2E/empty.json", mapID));
         // Login user "Bob"
         await login(userBob, 'Bob', 5, 'en-US', project.name === "mobilechromium");
         // Move user
@@ -60,7 +62,7 @@ test.describe('Meeting actions test', () => {
         // Check if the user has been muted
         await expect(page.locator('.cameras-container .other-cameras .video-container .media-box-camera-off-size')).toBeVisible({timeout: 20_000});
         // Click on the mute video button
-        await page.click('.cameras-container .other-cameras .video-container .action-button#mute-video-user');
+        await page.click('.cameras-container .other-cameras .video-container .action-button#mute-video-user',{timeout:60_000});
 
         // Check if "Bob" user receive the request to be muted
         await expect(userBob.locator('.interact-menu')).toBeVisible({timeout: 20_000});

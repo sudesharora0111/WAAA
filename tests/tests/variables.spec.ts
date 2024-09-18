@@ -15,7 +15,9 @@ import { login } from './utils/roles';
 import {maps_domain, maps_test_url, play_url, publicTestMapUrl} from "./utils/urls";
 
 test.setTimeout(360000);
+
 test.describe('Variables', () => {
+  test.describe.configure({mode:"serial"})
   // WARNING: Since this test restarts traefik and other components, it might fail when run against the vite dev server.
   // when running with --headed you can manually reload the page to avoid this issue.
   test('storage works @docker', async ({ page }, { project }) => {
@@ -43,7 +45,7 @@ test.describe('Variables', () => {
     await textField.press('Tab');
 
     await page.goto(
-      publicTestMapUrl("tests/Variables/shared_variables.json", "variables")
+      publicTestMapUrl("tests/Variables/shared_variables.json",  "variables")
     );
     await expect(textField).toHaveValue('new value');
 

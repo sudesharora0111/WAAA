@@ -17,7 +17,8 @@ test.use({
     baseURL: map_storage_url,
 });
 
-test.describe("Map editor @oidc", () => {
+test.describe("Map editor @oidc @serial", () => {
+    test.describe.configure({mode:"serial"})
     test.beforeEach(
         "Ignore tests on mobilechromium because map editor not available for mobile devices",
         ({}, {project}) => {
@@ -109,6 +110,7 @@ test.describe("Map editor @oidc", () => {
 
         await Menu.toggleMegaphoneButton(page);
 
+         
         await page2.close();
 
         // TODO IN THE FUTURE (PlayWright doesn't support it) : Add test if sound is correctly played
@@ -165,6 +167,10 @@ test.describe("Map editor @oidc", () => {
         await expect(page2.locator(".cameras-container .other-cameras .jitsi-video")).toBeVisible({
             timeout: 20_000,
         });
+
+        await page.close()
+        await page2.close();
+
     });
 
     test("Successfully set start area in the map editor", async ({page, request}, {project}) => {
@@ -247,6 +253,7 @@ test.describe("Map editor @oidc", () => {
         await popupPromise;
 
         // TODO make same test with object editor
+        await page.close()
     });
 
     test("Successfully set GoogleWorkspace's applications in the area in the map editor", async ({page, request}, {project}) => {
@@ -304,6 +311,7 @@ test.describe("Map editor @oidc", () => {
         await expect(page.locator("#cowebsite-thumbnail-0")).toBeVisible();
         await expect(page.locator("#cowebsite-thumbnail-1")).toBeVisible();
         await expect(page.locator("#cowebsite-thumbnail-2")).toBeVisible();
+         
     });
 
     test("Successfully set GoogleWorkspace's application entity in the map editor", async ({page, request}, {project}) => {
@@ -368,6 +376,7 @@ test.describe("Map editor @oidc", () => {
         await expect(page.locator(".actions-menu .actions button").nth(1)).toContainText("Open Google Sheets");
         await expect(page.locator(".actions-menu .actions button").nth(2)).toContainText("Open Google Slides");
         await expect(page.locator(".actions-menu .actions button").nth(3)).toContainText("Open Google Drive");
+        await page.close()
     });
 
     test("Successfully set Klaxoon's application entity in the map editor @local", async ({page, request}, {project}) => {
@@ -403,6 +412,7 @@ test.describe("Map editor @oidc", () => {
 
         // check if the popup with application is opened
         await expect(page.locator(".actions-menu .actions button").nth(0)).toContainText("Open Klaxoon");
+        await page.close()
     });
 
     // Create test for Google picker docs
@@ -429,6 +439,8 @@ test.describe("Map editor @oidc", () => {
         const uploadedEntityLocator = await EntityEditor.searchEntity(page, EntityEditor.getTestAssetName());
         const uploadedEntityElement = await uploadedEntityLocator.innerHTML();
         expect(uploadedEntityElement).toContain(EntityEditor.getTestAssetName());
+
+        await page.close()
     });
 
     test("Successfully upload and use custom entity in the map", async ({page, browser, request}, {project}) => {
@@ -476,6 +488,9 @@ test.describe("Map editor @oidc", () => {
         // check if the popup with application is opened on both pages
         await expect(page.locator(".actions-menu .actions button").nth(0)).toContainText("Open Link");
         await expect(page2.locator(".actions-menu .actions button").nth(0)).toContainText("Open Link");
+
+         
+        await page2.close();
     });
 
     test("Successfully upload and edit asset name", async ({page, browser, request}, {project}) => {
@@ -522,6 +537,9 @@ test.describe("Map editor @oidc", () => {
         // Expect inner html in string to contain the new entity name
         expect(uploadedEntityElement).toContain(newEntityName);
         expect(uploadedEntityElement2).toContain(newEntityName);
+
+         
+        await page2.close();
     });
 
     test("Successfully upload and remove custom entity", async ({page, browser, request}, {project}) => {
@@ -562,6 +580,10 @@ test.describe("Map editor @oidc", () => {
         // Expect both pages to have no entities
         await expect(page.getByTestId("entity-item")).toHaveCount(0);
         await expect(page2.getByTestId("entity-item")).toHaveCount(0);
+
+        await page.close()
+        await page2.close();
+
     });
 
     test("Successfully set searchable processus for entity and zone", async ({page, browser, request}, {project}) => {
@@ -621,6 +643,8 @@ test.describe("Map editor @oidc", () => {
         await expect(page.locator(".map-editor .sidebar .areas")).toContainText("1 areas found");
         await page.locator(".map-editor .sidebar .areas").click();
         expect(await page.locator(".map-editor .sidebar .area-items .item").count()).toBe(1);
+
+         
     });
 
     test("Successfully test global message text and sound feature", async ({page, browser, request}, {project}) => {
@@ -676,7 +700,6 @@ test.describe("Map editor @oidc", () => {
         // TODO : change to use the global message feature for user through megaphon settings rights
 
         await page2.close();
-        await page.close();
         // TODO IN THE FUTURE (PlayWright doesn't support it) : Add test if sound is correctly played
     });
 });

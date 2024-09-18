@@ -1,4 +1,5 @@
 import {expect, test} from '@playwright/test';
+import { v4 as uuid } from "uuid";
 import Menu from "./utils/menu";
 import {login} from "./utils/roles";
 import Map from "./utils/map";
@@ -9,6 +10,7 @@ test.use({
   baseURL: play_url,
 })
 test.describe('Mobile', () => {
+    test.describe.configure({mode:"parallel"});
     test('Successfully bubble discussion with mobile device', async ({ page, browser, request, browserName }) => {
         // If the browser is webkit
         if (browser.browserType().name() !== "mobilechromium") {
@@ -17,7 +19,8 @@ test.describe('Mobile', () => {
             return;
         }
 
-        await page.goto(Map.url("empty"));
+        const mapID = uuid();
+        await page.goto(publicTestMapUrl("tests/E2E/empty.json", mapID));
         await login(page, "Bob", 3, 'en-US', true);
 
         const positionToDiscuss = {
@@ -37,7 +40,7 @@ test.describe('Mobile', () => {
         // Second browser
         const newBrowserAlice = await browser.browserType().launch();
         const pageAlice = await newBrowserAlice.newPage();
-        await pageAlice.goto(Map.url("empty"));
+        await pageAlice.goto(publicTestMapUrl("tests/E2E/empty.json", mapID));
         await pageAlice.evaluate(() => localStorage.setItem('debug', '*'));
         await login(pageAlice, "Alice", 5, 'en-US', true);
 
@@ -57,7 +60,7 @@ test.describe('Mobile', () => {
         // Second browser
         const newBrowserJohn = await browser.browserType().launch();
         const pageJohn = await newBrowserJohn.newPage();
-        await pageJohn.goto(Map.url("empty"));
+        await pageJohn.goto(publicTestMapUrl("tests/E2E/empty.json", mapID));
         await pageJohn.evaluate(() => localStorage.setItem('debug', '*'));
         await login(pageJohn, "John", 5, 'en-US', true);
 
@@ -91,8 +94,9 @@ test.describe('Mobile', () => {
             test.skip();
             return;
         }
+        const mapID = uuid();
         page.goto(
-            publicTestMapUrl('tests/CoWebsite/cowebsite_jitsiroom.json', 'mobile')
+            publicTestMapUrl('tests/CoWebsite/cowebsite_jitsiroom.json', mapID)
         );
         await login(page, "Bob", 3, 'en-US', true);
 

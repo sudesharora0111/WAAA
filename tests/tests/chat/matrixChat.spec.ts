@@ -5,10 +5,11 @@ import { login } from "../utils/roles";
 import { oidcLogout, oidcMatrixUserLogin } from "../utils/oidc";
 import ChatUtils from "./chatUtils";
 
-test.describe("Matrix chat tests @oidc", () => {
+test.describe("Matrix chat tests @oidc @serial", () => {
+  test.describe.configure({mode:"serial"});
   test.beforeEach(
     "Ignore tests on webkit because of issue with camera and microphone",
-
+    
     async ({ browserName, request, page }) => {
       //WebKit has issue with camera
       if (browserName === "webkit") {
@@ -18,9 +19,29 @@ test.describe("Matrix chat tests @oidc", () => {
       }
       await resetWamMaps(request);
       await page.goto(Map.url("empty"));
+      
       await ChatUtils.resetMatrixDatabase();
     }
   );
+
+  
+  test("Create a private encrypted chat room (new user)", async ({
+    page,
+    context,
+  }, { project }) => {
+    const isMobile = project.name === "mobilechromium";
+    await login(page, "test", 3, "us-US", isMobile);
+    await oidcMatrixUserLogin(page, isMobile);
+    await ChatUtils.openChat(page);
+    await ChatUtils.openCreateRoomDialog(page);
+    const privateChatRoom = `Encrypted_${ChatUtils.getRandomName()}`;
+    await page.getByTestId("createRoomName").fill(privateChatRoom);
+    await page.getByTestId("createRoomVisibility").selectOption("private");
+    await page.getByTestId("createRoomEncryption").check();
+    await page.getByTestId("createRoomButton").click();
+    await ChatUtils.initEndToEndEncryption(page, context);
+    await expect(page.getByText(privateChatRoom)).toBeAttached();
+  });
   test("Open matrix Chat", async ({ page }, { project }) => {
     const isMobile = project.name === "mobilechromium";
     await login(page, "test", 3, "us-US", isMobile);
@@ -193,23 +214,6 @@ test.describe("Matrix chat tests @oidc", () => {
     await expect(page.getByText(privateChatRoom)).toBeAttached();
   });
 
-  test("Create a private encrypted chat room (new user)", async ({
-    page,
-    context,
-  }, { project }) => {
-    const isMobile = project.name === "mobilechromium";
-    await login(page, "test", 3, "us-US", isMobile);
-    await oidcMatrixUserLogin(page, isMobile);
-    await ChatUtils.openChat(page);
-    await ChatUtils.openCreateRoomDialog(page);
-    const privateChatRoom = `Encrypted_${ChatUtils.getRandomName()}`;
-    await page.getByTestId("createRoomName").fill(privateChatRoom);
-    await page.getByTestId("createRoomVisibility").selectOption("private");
-    await page.getByTestId("createRoomEncryption").check();
-    await page.getByTestId("createRoomButton").click();
-    await ChatUtils.initEndToEndEncryption(page, context);
-    await expect(page.getByText(privateChatRoom)).toBeAttached();
-  });
 
   test("Send message in private chat room (new user)", async ({
     page,
@@ -232,6 +236,8 @@ test.describe("Matrix chat tests @oidc", () => {
     await page.getByTestId("sendMessageButton").click();
     await expect(page.getByText(chatMessageContent)).toBeAttached();
   });
+
+  
 
   test("Retrieve encrypted message", async ({ page, context }, { project }) => {
     const isMobile = project.name === "mobilechromium";
