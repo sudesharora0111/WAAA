@@ -95,13 +95,36 @@
         data-testid="chat"
         transition:fly={{ duration: 200, x: -sideBarWidth }}
         style="width: {sideBarWidth}px; max-width: {Math.min(sideBarWidth, document.documentElement.clientWidth)}px;"
-        class="chatWindow !tw-min-w-full sm:!tw-min-w-[360px] tw-bg-contrast/95 tw-backdrop-blur-md tw-p-4 "
+        class="chatWindow !tw-min-w-full sm:!tw-min-w-[360px] tw-bg-contrast/80 tw-backdrop-blur-md tw-p-0"
     >
-        <button class="close-window" data-testid="closeChatButton" on:click={closeChat}>&#215;</button>
+        <div class="close-window tw-absolute -tw-right-[4.5rem] tw-top-2 tw-p-2 tw-bg-contrast/80 tw-rounded-2xl">
+            <button
+                class="tw-p-3 hover:tw-bg-white/10 tw-rounded-xl tw-aspect-square tw-w-12 tw-m-0"
+                data-testid="closeChatButton"
+                on:click={closeChat}
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="icon icon-tabler icon-tabler-x"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="#ffffff"
+                    fill="none"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                    <path d="M18 6l-12 12" />
+                    <path d="M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
         <Chat {sideBarWidth} />
 
         <div
-            class="!tw-absolute !tw-right-1 !tw-top-0 !tw-bottom-0 !tw-m-auto !tw-w-1.5 !tw-h-32 !tw-bg-white !tw-rounded !tw-cursor-col-resize"
+            class="!tw-absolute !tw-right-1 !tw-top-0 !tw-bottom-0 !tw-m-auto !tw-w-1 !tw-h-32 !tw-bg-white !tw-rounded !tw-cursor-col-resize"
             id="resize-bar"
             on:mousedown={handleMousedown}
             on:dblclick={handleDbClick}
@@ -126,10 +149,9 @@
         min-width: 335px !important;
         width: 335px;
         pointer-events: auto;
-
+        max-width: calc(100vw - 82px) !important;
         height: 100dvh !important;
         z-index: 2000;
-        pointer-events: auto;
         .close-window {
             cursor: pointer;
             align-self: end;

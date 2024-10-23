@@ -15,7 +15,7 @@
     import MessageReactions from "./MessageReactions.svelte";
     import MessageIncoming from "./Message/MessageIncoming.svelte";
     import MessageOutcoming from "./Message/MessageOutcoming.svelte";
-    import { IconCornerDownRight, IconTrash } from "@wa-icons";
+    import { IconTrash } from "@wa-icons";
 
     export let message: ChatMessage;
     export let reactions: MapStore<string, ChatMessageReaction> | undefined;
@@ -47,80 +47,114 @@
 </script>
 
 <div
+    id="message"
     tabindex="-1"
     class={`${isMyMessage && "tw-self-end tw-flex-row-reverse tw-relative"} ${
         messageFromSystem && "tw-justify-center"
-    } tw-select-text focus:tw-outline-none focus:tw-shadow-none block-user-action messageContainer`}
+    } tw-select-text tw-group/message block-user-action messageContainer`}
 >
-    <div class={`container-grid ${isMyMessage ? "tw-justify-end grid-container-inverted" : "tw-justify-start"}`}>
+    <div
+        class="container-grid tw-justify-start {replyDepth === 0 ? 'tw-pl-3 tw-pr-4' : ''} {!isDeleted
+            ? 'group-hover/message:tw-pb-4'
+            : ''} ${isMyMessage ? 'tw-justify-end grid-container-inverted' : 'tw-justify-start'}"
+    >
         <div
-            class="messageHeader tw-text-gray-500 tw-text-xxs tw-p-0 tw-m-0 tw-flex tw-justify-between tw-items-end"
+            class="messageHeader tw-text-gray-500 tw-text-xxs tw-p-0 tw-m-0 tw-flex tw-justify-between tw-items-end tw-opacity-0 tw-h-0 group-hover/message:tw-pt-1 group-hover/message:tw-h-auto group-hover/message:tw-opacity-100
+                    {!isMyMessage && !messageFromSystem && !$isDeleted ? 'tw-mr-14 tw-ml-2' : ''}
+                    {isMyMessage && !messageFromSystem && !$isDeleted ? 'tw-ml-14 tw-mr-2' : ''}"
             class:tw-flex-row-reverse={isMyMessage}
             hidden={isQuotedMessage || messageFromSystem}
         >
-            <span hidden={messageFromSystem}>{isMyMessage ? "You" : sender?.username}</span>
-            <span class={`tw-text-xxxs ${isMyMessage ? "tw-mr-1" : "tw-ml-1"}`}
+            <span hidden={messageFromSystem} class="tw-text-white {!isMyMessage ? 'tw-text-white tw-font-bold' : ''}"
+                >{isMyMessage ? "You" : sender?.username}</span
+            >
+            <span class={`tw-text-xxs ${isMyMessage ? "tw-mr-1" : "tw-ml-1"}`}
                 >{date?.toLocaleTimeString($locale, {
                     hour: "2-digit",
                     minute: "2-digit",
                 })}</span
             >
         </div>
-        {#if (!isMyMessage || isQuotedMessage) && sender !== undefined}
-            <div class="avatar">
+        {#if (!isMyMessage || isQuotedMessage) && sender !== undefined && replyDepth === 0}
+            <div class="avatar tw-pt-1.5">
                 <Avatar avatarUrl={sender?.avatarUrl} fallbackName={sender?.username} />
             </div>
         {/if}
 
         <div
-            class="message tw-rounded-2xl tw-p-2"
-            class:tw-bg-primary={!isMyMessage && !messageFromSystem}
-            class:tw-bg-secondary={isMyMessage && !messageFromSystem}
-            class:tw-rounded-br-none={isMyMessage && !messageFromSystem}
-            class:tw-rounded-bl-none={!isMyMessage && !messageFromSystem}
+            class="message
+                    {$isDeleted && !isMyMessage && !messageFromSystem && replyDepth === 0
+                ? 'tw-bg-white/10 tw-mr-12'
+                : ''}
+                    {$isDeleted && isMyMessage && !messageFromSystem && replyDepth === 0
+                ? 'tw-bg-white/10 tw-ml-12'
+                : ''}
+                    {!isMyMessage && !messageFromSystem && !$isDeleted && replyDepth === 0
+                ? 'tw-bg-contrast tw-mr-12'
+                : ''}
+                    {isMyMessage && !messageFromSystem && !$isDeleted && replyDepth === 0
+                ? 'tw-bg-secondary tw-ml-12'
+                : ''}
+                    {type === 'audio' || type === 'file' ? 'tw-rounded-full' : 'tw-rounded-xl'}
+                    {reactions !== undefined && !$isDeleted && replyDepth === 0 ? 'tw-mb-4 tw-p-1' : ''}"
         >
             {#if $isDeleted}
-                <p class="tw-p-0 tw-m-0 tw-text-xs tw-text-gray-400 tw-flex tw-items-center">
+                <p class="tw-py-2 tw-px-2 tw-m-0 tw-text-xs tw-flex tw-items-center tw-italic tw-gap-2 tw-opacity-50">
                     <IconTrash font-size={12} />
                     {$LL.chat.messageDeleted()}
                 </p>
+            {:else if $selectedChatMessageToEdit !== null && $selectedChatMessageToEdit.id === id}
+                <MessageEdition message={$selectedChatMessageToEdit} />
             {:else}
+                {#if replyDepth > 0}
+                    <div class="tw-px-2 tw-pt-1 tw-text-xxs tw-font-bold">{isMyMessage ? "You" : sender?.username}</div>
+                {/if}
+
                 <svelte:component this={messageType[type]} on:updateMessageBody={updateMessageBody} {content} />
-                {#if $isModified}
-                    <p class="tw-text-gray-300 tw-text-xxxs tw-p-0 tw-m-0">({$LL.chat.messageEdited()})</p>
-                {/if}
-                {#if $selectedChatMessageToEdit !== null && $selectedChatMessageToEdit.id === id}
-                    <MessageEdition message={$selectedChatMessageToEdit} />
-                {/if}
+
                 {#if reactions !== undefined}
-                    <MessageReactions {reactions} />
+                    <MessageReactions
+                        classes={isMyMessage ? "tw-bg-secondary tw-right-2" : "tw-bg-contrast"}
+                        {reactions}
+                    />
+                {/if}
+                {#if $isModified}
+                    <div class="tw-text-white/50 tw-text-xxs tw-p-0 tw-m-0 tw-px-2 tw-pb-1 tw-text-right">
+                        ({$LL.chat.messageEdited()})
+                    </div>
                 {/if}
             {/if}
+
+            {#if !isQuotedMessage && !$isDeleted && message.type !== "proximity" && message.type !== "incoming" && message.type !== "outcoming" && ($selectedChatMessageToEdit === null || $selectedChatMessageToEdit.id !== id)}
+                <div
+                    class="options tw-backdrop-blur-sm tw-pt-1 tw-pb-1.5 tw-px-3 tw-rounded-3xl tw-z-50 -tw-bottom-4 {!isMyMessage
+                        ? 'tw-mr-2 tw-right-1 tw-bg-contrast-600'
+                        : 'tw-left-2 tw-bg-secondary-600'}"
+                >
+                    <MessageOptions {message} />
+                </div>
+            {/if}
+
+            {#if quotedMessage && replyDepth < 1 && !$isDeleted}
+                <div class="tw-p-1 tw-opacity-80">
+                    <div class="response tw-bg-white/10 tw-rounded">
+                        <!-- TODO Refacto Hugo -->
+                        <svelte:self replyDepth={replyDepth + 1} message={quotedMessage} />
+                    </div>
+                </div>
+            {/if}
         </div>
-        {#if quotedMessage && replyDepth < 2}
-            <div class="response">
-                <IconCornerDownRight font-size="24" />
-                <svelte:self replyDepth={replyDepth + 1} message={quotedMessage} />
-            </div>
-        {/if}
     </div>
-    {#if !isQuotedMessage && !$isDeleted && message.type !== "proximity" && message.type !== "incoming" && message.type !== "outcoming"}
-        <div
-            class={`options tw-bg-white/30 tw-backdrop-blur-sm tw-p-1 tw-rounded-md ${!isMyMessage ? "tw-left-6" : ""}`}
-        >
-            <MessageOptions {message} />
-        </div>
-    {/if}
 </div>
 
 <style>
-    .messageContainer {
+    #message {
         display: flex;
         align-items: flex-start;
         position: relative;
     }
 
-    .messageContainer:hover .options {
+    #message:hover .options {
         display: flex;
         flex-direction: row;
         gap: 2px;
@@ -144,7 +178,7 @@
 
     .message {
         grid-area: message;
-        min-width: 0;
+        min-width: 180px;
         overflow-wrap: anywhere;
         position: relative;
     }
@@ -152,13 +186,10 @@
     .avatar {
         grid-area: avatar;
         display: flex;
-        align-items: flex-end;
+        /*align-items: flex-end;*/
     }
 
     .response {
-        opacity: 50%;
         grid-area: response;
-        display: flex;
-        flex-direction: row;
     }
 </style>

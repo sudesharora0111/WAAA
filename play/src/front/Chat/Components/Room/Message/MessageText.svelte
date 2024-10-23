@@ -5,6 +5,7 @@
     import { ChatMessageContent } from "../../../Connection/ChatConnection";
     import { sanitizeHTML } from "./WA-HTML-Sanitizer";
     export let content: Readable<ChatMessageContent>;
+    export let hasDepth: false;
 
     const dispatch = createEventDispatcher();
 
@@ -74,6 +75,21 @@
     });
 </script>
 
-<p class="tw-p-0 tw-m-0 tw-text-xs" lang="">
+<div
+    class="message-bubble tw-m-0 {hasDepth ? 'tw-text-xs tw-leading-4' : 'tw-text-sm'} tw-text-white tw-py-1 tw-px-2"
+    lang=""
+>
     {@html sanitizeHTML(html)}
-</p>
+    <style>
+        .message-bubble p:last-of-type {
+            margin-bottom: 0;
+        }
+        .message-bubble a {
+            text-decoration: underline;
+            opacity: 0.75;
+        }
+    </style>
+</div>
+
+<style>
+</style>
